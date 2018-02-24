@@ -1,6 +1,6 @@
-﻿using System;
+﻿using ADO.DataAccess.Models;
+using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
 
 
@@ -15,10 +15,12 @@ namespace ADO.DataAccess
                 connection.Open();
 
                 var cmd = connection.CreateCommand();
-                cmd.CommandText = @"select  x.invoiceid,BillingAddress
+                cmd.CommandText = @"select  i.*
                                 from invoice i
-	                                join InvoiceLine x on x.InvoiceId = i.InvoiceId
-                                where exists (select TrackId from Track where Name like @FirstLetter + '%' and TrackId = x.TrackId)";
+	                                join InvoiceLine x 
+                                    on x.InvoiceId = i.InvoiceId
+                                where exists (select TrackId from Track 
+                                    where Name like @FirstLetter + '%' and TrackId = x.TrackId)";
 
                 // sql parameter collection - setting up parameter
                 var firstLetterParam = new SqlParameter("@FirstLetter", System.Data.SqlDbType.VarChar);
@@ -30,29 +32,32 @@ namespace ADO.DataAccess
 
                 var reader = cmd.ExecuteReader();
 
+                // create the list
+                var invoices = new List<Invoice>();
+
                 while (reader.Read())
                 {
-                    var invoiceId = reader.GetInt32(0);
-                    var billingAddress = reader["BillingAddress"].ToString();
+                    var invoice = new Invoice
+                    {
+                        // fill the properties with the values from each row in our database
+                        // object initializer
+                        InvoiceId = int.Parse(reader["InvoiceId"].ToString()),
+                        CustomerId = int.Parse(reader["CustomerId"].ToString()),
+                        InvoiceDate = DateTime.Parse(reader["InvoiceDate"].ToString()),
+                        BillingAddress = reader["BillingAddress"].ToString(),
+                        BillingCity = reader["BillingCity"].ToString(),
+                        BillingState = reader["BillingState"].ToString(),
+                        BillingCountry = reader["BillingCountry"].ToString(),
+                        BillingPostalCode = reader["BillingPostalCode"].ToString(),
+                        Total = double.Parse(reader["Total"].ToString())
+                    };
 
-                    Console.WriteLine($"Invoice {invoiceId} is going to {billingAddress}");
+                    invoices.Add(invoice);
+
                 }
+
+                return invoices;
             }
         }
-    }
-
-    // create in-code representation of database table
-    // can interact more naturally with the data in our code
-    internal class Invoice
-    {
-        public int InvoiceId { get; set; }
-        public int CustomerId { get; set; }
-        public DateTime InvoiceDate { get; set; }
-        public string BillingAddress { get; set; }
-        public string BillingCity { get; set; }
-        public string BillingState { get; set; }
-        public string BillingCountry { get; set; }
-        public string BillingPostalCode { get; set; }
-        public double Total { get; set; }
     }
 }
