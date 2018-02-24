@@ -19,7 +19,7 @@ namespace ADOExample
             {
                 Console.WriteLine($"Invoice Id {invoice.InvoiceId} was shipped to {invoice.BillingAddress}.");
             }
-
+            
             Console.ReadLine();
         }
     }

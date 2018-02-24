@@ -29,6 +29,9 @@ namespace ADO.DataAccess
                 invoiceIdParam.Value = invoiceId;
                 cmd.Parameters.Add(invoiceIdParam);
 
+                //open the connection
+                connection.Open();
+
                 // takes in an int number of rows effected
                 var result = cmd.ExecuteNonQuery();
 
