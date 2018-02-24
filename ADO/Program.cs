@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Data.SqlClient;
+using ADO.DataAccess;
 
 namespace ADOExample
 {
@@ -7,39 +7,20 @@ namespace ADOExample
     {
         static void Main(string[] args)
         {
+            // takes user input
             var firstLetter = Console.ReadLine();
 
-            using (var connection = new SqlConnection("Server=(local);Database=Chinook;Trusted_Connection=True;"))
+            // querying database
+            var invoiceQuery = new InvoiceQuery();
+            var invoices = invoiceQuery.GetInvoiceByTrackFirstLetter(firstLetter);
+
+            // prints output to console
+            foreach (var invoice in invoices)
             {
-                connection.Open();
-
-                var cmd = connection.CreateCommand();
-                cmd.CommandText = @"select  x.invoiceid,BillingAddress
-                                from invoice i
-	                                join InvoiceLine x on x.InvoiceId = i.InvoiceId
-                                where exists (select TrackId from Track where Name like @FirstLetter + '%' and TrackId = x.TrackId)";
-
-                // sql parameter collection - setting up parameter
-                var firstLetterParam = new SqlParameter("@FirstLetter", System.Data.SqlDbType.VarChar);
-                // here's the value to use sql server when you see the parameters in a query
-                firstLetterParam.Value = firstLetter;
-                // add to list of parameters
-                cmd.Parameters.Add(firstLetterParam);
-
-
-                var reader = cmd.ExecuteReader();
-
-                while (reader.Read())
-                {
-                    var invoiceId = reader.GetInt32(0);
-                    var billingAddress = reader["BillingAddress"].ToString();
-
-                    Console.WriteLine($"Invoice {invoiceId} is going to {billingAddress}");
-                }
+                Console.WriteLine($"Invoice Id {invoice.InvoiceId} was shipped to {invoice.BillingAddress}.");
             }
 
             Console.ReadLine();
-
         }
     }
 }
